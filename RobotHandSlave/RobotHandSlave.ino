@@ -1,9 +1,6 @@
 //수신부 프로그램
 #include<stdlib.h>
-#define SIZE 5
-#define BUFFER_SIZE 50
-char buf[BUFFER_SIZE] = {0,};
-char char_degree[SIZE][4] = {0,};
+#define SIZE 6
 int degree[SIZE] = {0,};
 int state[SIZE] = {0,};
 
@@ -17,63 +14,15 @@ int j = 0;
 void setup()
 {
   Serial.begin(9600); //통신속도 9600
-  DDRD |= (0x01 << 2 | 0x01 << 3 | 0x01<<4 | 0x01 << 5 | 0x01 << 6);
+  DDRD |= (0x01 << 2 | 0x01 << 3 | 0x01<<4 | 0x01 << 5 | 0x01 << 6 || 0x01 << 7);
 }
 
 void loop()
 {
   curMicros = micros();
-//---------------------------- 값 읽기----------
-  if (Serial.available())
-  {
-    String data = Serial.readStringUntil('\n');
-    data.toCharArray(buf, BUFFER_SIZE);
-    check = 0;
-  }
-//----------------- 값 해석 --------------------
-  if (check == 0)
-  {
-    for(int i=0;i<SIZE;i++)
-    {
-      char tmp[3] = {' ',' ',' '};
-      strcpy(char_degree[i], tmp);
-    }
-    for (int i = 0; i < BUFFER_SIZE; i++)
-    {
-      if (buf[i] == '_')
-      {
-        count++;
-        j = 0;
-        if (count >= SIZE)
-        {
-          count = 0;
-          break;
-        }
-      }
-      else    {
-        char_degree[count][j++] = buf[i];
-      }
-    }
-    for (int i = 0; i < SIZE; i++)
-    {
-      //Serial.print(i);
-      //Serial.print(" : ");
-      //Serial.print(char_degree[i]);
-      degree[i] = atoi(char_degree[i]);
-      if(degree[i] == 0)
-      {
-        degree[i] = 1; 
-      }
-      if(degree[i] > 180)
-      {
-        degree[i] = 180;
-      }
-      //Serial.print(degree[i]);
-    }
-    check = 1;
-  }
-  
 //-----------------------모터 실행부 ---------------------
+if(check == 0)
+{
   for (int i = 0; i < SIZE; i++)
   {
     if (curMicros - preMicros[i] > 600 + degree[i] * 10 && state[i] == 0)
@@ -91,4 +40,58 @@ void loop()
       //Serial.println("HIGH");
     }
   }
+}
+  
+}
+void serialEvent()
+{
+  while(Serial.available())
+  {
+     String data = Serial.readStringUntil('\n');
+     check = 1;
+     Split(data,' ');
+     check = 0;
+  }
+}
+void Split(String sData, char cSeparator)
+{	
+	int nCount = 0;
+	int nGetIndex = 0 ;
+
+	//임시저장
+	String sTemp = "";
+
+	//원본 복사
+	String sCopy = sData;
+
+	while(true)
+	{
+		//구분자 찾기
+		nGetIndex = sCopy.indexOf(cSeparator);
+
+		//리턴된 인덱스가 있나?
+		if(-1 != nGetIndex)
+		{
+			//있다.
+
+			//데이터 넣고
+			sTemp = sCopy.substring(0, nGetIndex);
+
+      		degree[i++] = atoi(sTemp);
+			//Serial.println(sTemp);
+		
+			//뺀 데이터 만큼 잘라낸다.
+			sCopy = sCopy.substring(nGetIndex + 1);
+		}
+		else
+		{
+			//없으면 마무리 한다.
+			Serial.println( sCopy );
+			break;
+		}
+
+		//다음 문자로~
+		++nCount;
+	}
+
 }
