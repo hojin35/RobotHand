@@ -55,6 +55,7 @@ void serialEvent()
 }
 void Split(String sData, char cSeparator)
 {	
+  int location = 0;
 	int nCount = 0;
 	int nGetIndex = 0 ;
 
@@ -76,8 +77,9 @@ void Split(String sData, char cSeparator)
 
 			//데이터 넣고
 			sTemp = sCopy.substring(0, nGetIndex);
-
-      		degree[i++] = atoi(sTemp);
+      char temp[100];
+      strcpy(temp,sTemp.c_str());
+      degree[nCount] = atoi(temp);
 			//Serial.println(sTemp);
 		
 			//뺀 데이터 만큼 잘라낸다.
@@ -86,7 +88,7 @@ void Split(String sData, char cSeparator)
 		else
 		{
 			//없으면 마무리 한다.
-			Serial.println( sCopy );
+			//Serial.println( sCopy );
 			break;
 		}
 
